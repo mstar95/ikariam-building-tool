@@ -1,0 +1,25 @@
+{
+  "name": "ikariam-building-tool",
+  "version": "1.0.0",
+  "description": "Your own asynchronous Ikariam building tool.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mstar95/ikariam-building-tool.git"
+  },
+  "author": "mstar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mstar95/ikariam-building-tool/issues"
+  },
+  "homepage": "https://github.com/mstar95/ikariam-building-tool#readme",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "node-notifier": "^6.0.0",
+    "puppeteer": "^2.1.1"
+  }
+}
