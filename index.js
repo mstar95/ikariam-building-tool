@@ -4,12 +4,6 @@ const notifier = require('node-notifier');
 const siteUrl = 'https://s43-pl.ikariam.gameforge.com/?view=city&cityId=3663';
 const PHPSESSID = 'umajdblpi89a1bsgho34k54c23';
 
-// await new Promise((resolve, reject) => {
-//     let wait = setTimeout(() => {
-//         resolve('Promise A win!');
-//     }, 5000)
-// })
-// console.log("after")
 
 const cookies = [{
     name: 'ikariam',
@@ -17,39 +11,61 @@ const cookies = [{
     domain: 's43-pl.ikariam.gameforge.com'
 }]
 
+
 const scrape = async () => {
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    await page.setCookie(...cookies);
-    // page.on('response', async (data) => {
-    //     console.log(await data.text() );
-    // })
-    await page.goto(siteUrl);
+    console.log("Scrape started")
+    try {
+        onInterrupt(browser)
+        console.log("Hook installed")
+        await page.setCookie(...cookies);
 
-    await click(page, '#js_CityPosition17Link')
+        await page.goto(siteUrl);
+        console.log("Login succeed")
 
-    await click(page, '.capture')
+        await click(page, '#js_CityPosition17Link')
 
+        while(true) {
 
-    await page.waitForSelector('.capture', {
-        timeout: 5000
+            await click(page, '.capture')
+            await page.waitForSelector('.capture', {
+                timeout: 5000
+            });
+            console.log("selector appeared");
+            await sleep();
+        }
+    } catch (e) {
+        notify()
+        await page.screenshot({path: 'example2.png'});
+        await browser.close();
+        throw e;
+    }
+};
+
+function onInterrupt(browser) {
+    process.on('SIGINT', function() {
+        console.log("Caught interrupt signal");
+        browser.close();
+        process.exit();
     });
-    console.log("selector appeared")
+}
 
-    await page.screenshot({path: 'example2.png'});
-    const result = await page.evaluate(evaluate)
-
-    console.log(result)
-    browser.close();
+function notify() {
     notifier.notify({
-        title: 'My awesome title',
-        message: 'Hello from node, Mr. User!',
-        sound: true, // Only Notification Center or Windows Toasters
+        title: 'Some error',
+        message: 'Some error!',
+        sound: 'Ping', // Only Notification Center or Windows Toasters
         wait: true // Wait with callback, until user action is taken against notification, does not apply to Windows Toasters as they always wait or notify-send as it does not support the wait option
     });
+}
 
-};
+const sleep = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve('Promise A win!');
+    }, 3 * 60 * 1000)
+})
 
 async function click(page, name, sideffect) {
     await page.waitForSelector(name, {
@@ -68,8 +84,6 @@ const evaluate = async () => {
     }
     return out;
 };
-
-
 
 
 scrape().catch(e => console.log(e));
