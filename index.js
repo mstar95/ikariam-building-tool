@@ -1,40 +1,30 @@
-const axios = require("axios");
 const puppeteer = require("puppeteer");
 const notifier = require('node-notifier');
-const siteUrl = 'https://s43-pl.ikariam.gameforge.com/?view=city&cityId=3663';
-const PHPSESSID = 'umajdblpi89a1bsgho34k54c23';
+const credentials = require("./credentials");
 
 
-const cookies = [{
-    name: 'ikariam',
-    value: '2569_81e7fc54172fe94ecf10ac572203ae23',
-    domain: 's43-pl.ikariam.gameforge.com'
-}]
-
+const url = 'https://lobby.ikariam.gameforge.com/pl_PL/';
 
 const scrape = async () => {
-
-    const browser = await puppeteer.launch();
+    const  browser = await puppeteer.launch();
     const page = await browser.newPage();
     console.log("Scrape started")
     try {
         onInterrupt(browser)
-        console.log("Hook installed")
-        await page.setCookie(...cookies);
-
-        await page.goto(siteUrl);
-        console.log("Login succeed")
-
+        await page.goto(url);
+        await login(page)
+        await waitForSelector(page, '#joinGame')
+        await click(page, '.button-primary')
+        await click(page, '.btn-primary')
+       // const xd = await page.evaluate(evaluate);
         await click(page, '#js_CityPosition17Link')
-
-        while(true) {
-
+        while (true) {
             await click(page, '.capture')
             await page.waitForSelector('.capture', {
                 timeout: 5000
             });
             console.log("selector appeared");
-            await sleep();
+            await page.waitFor(3 * 60 * 1000);
         }
     } catch (e) {
         notify()
@@ -45,11 +35,22 @@ const scrape = async () => {
 };
 
 function onInterrupt(browser) {
-    process.on('SIGINT', function() {
+    process.on('SIGINT', function () {
         console.log("Caught interrupt signal");
         browser.close();
         process.exit();
     });
+    console.log("Hook installed")
+}
+
+async function login(page) {
+    await click(page, '.openX_int_closeButton a')
+    await click(page, '.tabsList li')
+    await waitForSelector(page, 'input[type=checkbox]')
+    await page.type('input[type=email]', credentials.login)
+    await page.type('input[type=password]', credentials.password)
+    await click(page, 'button[type=submit]')
+    console.log('Login succeed')
 }
 
 function notify() {
@@ -61,18 +62,16 @@ function notify() {
     });
 }
 
-const sleep = new Promise((resolve, reject) => {
-    setTimeout(() => {
-        resolve('Promise A win!');
-    }, 3 * 60 * 1000)
-})
+async function click(page, selector) {
+    await waitForSelector(page, selector)
+    console.log(selector + " appeared")
+    await page.click(selector)
+}
 
-async function click(page, name, sideffect) {
-    await page.waitForSelector(name, {
+async function waitForSelector(page, selector) {
+    await page.waitForSelector(selector, {
         timeout: 5000
     });
-    console.log("selector appeared")
-    await page.click(name)
 }
 
 const evaluate = async () => {
